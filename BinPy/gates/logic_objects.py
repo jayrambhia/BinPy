@@ -51,7 +51,7 @@ class Connector(object):
         for input in inputs : self.connects.append(input)
     
     def __repr__(self):
-        return "<BinPy.Connector Object name:(%s), value:(%s), at memory location: (%s)"\
+        return "<BinPy.Connector Object name:(%s), value:(%s), at memory location: (%s)>"\
         %(self.name, str(self.value), hex(id(self)))
     
     def set (self, value) :
@@ -94,6 +94,9 @@ class Not (LC) :
     def __setitem__(self, coord, value):
         item = self.states.get(coord)
         if item:
+            if item.monitor:
+                warnings.warn("Monitoring logic can not be set. Returning None.")
+                return None
             item.set(value)
             return True
         else:
@@ -109,12 +112,16 @@ class Not (LC) :
             return None
 
     def getStates(self):
-    	return self.states
+        states = {}
+        keys = self.states.keys()
+        for key in keys:
+            states.setdefault(key, self.states.get(key).value)
+    	return states
 
-   	def printStates(self):
-   		keys = self.states.getKeys()
-   		for key in keys:
-   			print key,":",self.states.get(key)
+    def printStates(self):
+        keys = self.states.keys()
+        for key in keys:
+            print key,":",self.states.get(key).value
 
     def evaluate (self) : self.B.set(not self.A.value)          
 
@@ -138,6 +145,9 @@ class Gate2 (LC) :
     def __setitem__(self, coord, value):
         item = self.states.get(coord)
         if item:
+            if item.monitor:
+                warnings.warn("Monitoring logic can not be set. Returning None.")
+                return None
             item.set(value)
             return True
         else:
@@ -153,12 +163,16 @@ class Gate2 (LC) :
             return None
 
     def getStates(self):
-    	return self.states
-
-    def stringStates(self):
+        states = {}
         keys = self.states.keys()
         for key in keys:
-            print key,":",self.states.get(key)
+            states.setdefault(key, self.states.get(key).value)
+    	return states
+
+    def printStates(self):
+        keys = self.states.keys()
+        for key in keys:
+            print key,":",self.states.get(key).value
 
 class And (Gate2) :   
     '''
@@ -309,5 +323,5 @@ class logicGate(Not, Nand, Or, Nor, And, Xor, Xnor):
         elif lname == "xnor":
             Xnor.__init__(self, name)
         else:
-            #raise ExceptionError("No standard logic gate")
+            warnings.warn("No such logic gate available. Returning None")
             return None
